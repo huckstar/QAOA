@@ -113,7 +113,7 @@ def get_ring_mixer_operator_circuit(G,beta):
     meas = ClassicalRegister(N,'meas')
     qc = QuantumCircuit(sim, meas)
     for i in G.nodes():
-        swap_mixer(qc,i,(i+1)%6,beta,N)
+        swap_mixer(qc,i,(i+1)%N,beta,N)
     return qc
 
 def get_complete_mixer_operator_circuit(G,beta):
