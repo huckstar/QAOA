@@ -121,8 +121,9 @@ def get_complete_mixer_operator_circuit(G,beta):
     sim = QuantumRegister(N,'sim')
     meas = ClassicalRegister(N,'meas')
     qc = QuantumCircuit(sim, meas)
-    for i,j in G.edges():
-        swap_mixer(qc,i,j,beta,N)
+    for i in G.nodes():
+        for j in range(i):
+            swap_mixer(qc,i,j,beta,N)
     return qc
 
 def get_qaoa_circuit(G,beta,gamma,n,k,mixer):
@@ -189,6 +190,10 @@ def get_qaoa_circuit_sv(G,beta,gamma,n,k,mixer):
         for i in range(p):
            qc += get_cost_operator_circuit(G,gamma[i])
            qc += get_ring_mixer_operator_circuit(G,beta[i])
+    elif mixer == 3:
+        for i in range(p):
+           qc += get_cost_operator_circuit(G,gamma[i])
+           qc += get_grover_mixer_operator_circuit(G,beta[i],n,k)
     #qc.measure(range(N),range(N))
     return qc
 
@@ -241,3 +246,17 @@ def get_black_box_objective_sv(G,p,n,k,mixer):
         svv = get_adjusted_state(execute(cc, backend).result().get_statevector())
         return compute_maxkvertex_energy_sv(svv,G)
     return f
+
+
+#############################################
+def get_grover_mixer_operator_circuit(G,beta,n,k):
+    sim = QuantumRegister(n,'sim')
+    meas = ClassicalRegister(n,'meas')
+    N = G.number_of_nodes()
+    qc = QuantumCircuit(sim, meas)
+    qc += Dicke_exp(n,k).inverse()
+    qc.x(list(range(n)))
+    qc.mcp(beta,list(range(n-1)),n-1)
+    qc.x(list(range(n)))
+    qc += Dicke_exp(n,k)
+    return qc
